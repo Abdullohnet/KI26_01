@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A3-mashg'ulot: Dasturiy ta'minot va operatsion tizimlar — Amaliy sayt</title>
+<style>
+  :root {
+    --primary: #028090; --secondary: #00A896; --accent: #02C39A; --orange: #F39C12; --red: #C0392B;
+    --dark: #052E33; --text: #1B2B34; --muted: #5C7A80; --bg: #F3FAF9; --card: #FFFFFF; --border: #D8E8E6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; }
+  header { background: var(--dark); color: white; padding: 2.2rem 1.5rem; text-align: center; }
+  header .eyebrow { color: var(--accent); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em; }
+  header h1 { margin: 0.3rem 0 0.2rem; font-size: 1.6rem; }
+  header p { margin: 0.4rem auto 0; color: #CFEAE6; font-size: 0.95rem; max-width: 680px; }
+
+  nav.tabs { position: sticky; top: 0; z-index: 10; background: white; border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; }
+  nav.tabs button { flex: 1; min-width: 150px; padding: 0.9rem 0.6rem; border: none; background: none; cursor: pointer; font-weight: 700; font-size: 0.82rem; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; }
+  nav.tabs button.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 1.8rem 1.5rem 3rem; }
+  .task { display: none; }
+  .task.active { display: block; }
+  .task h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 0.2rem; }
+  .task .meta { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.2rem; }
+  .instructions { background: #EAF6F5; border-left: 4px solid var(--primary); border-radius: 8px; padding: 0.9rem 1.1rem; font-size: 0.9rem; margin-bottom: 1.3rem; }
+
+  .item-row { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 0.7rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .item-row .spec { font-weight: 600; font-size: 0.88rem; flex: 1.4; min-width: 220px; }
+  .item-row select { flex: 1; min-width: 160px; padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); font-size: 0.82rem; }
+  .item-row .fb { width: 100%; font-size: 0.8rem; margin-top: 0.4rem; display: none; }
+  .item-row.checked .fb { display: block; }
+
+  button.primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0.6rem 1.3rem; font-size: 0.9rem; cursor: pointer; font-weight: 700; }
+  .btn-row { display: flex; gap: 0.7rem; margin-top: 1rem; flex-wrap: wrap; align-items: center; }
+
+  .drag-pool { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; padding: 0.8rem; background: #FAFEFD; border: 1px dashed var(--border); border-radius: 10px; min-height: 50px; }
+  .drag-chip { padding: 0.4rem 0.8rem; background: var(--primary); color: white; border-radius: 20px; font-size: 0.82rem; cursor: pointer; user-select: none; }
+  .drop-slots { display: flex; flex-direction: column; gap: 0.5rem; }
+  .drop-slot { display: flex; align-items: center; gap: 0.7rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.8rem; background: white; }
+  .drop-slot .rank-num { width: 26px; height: 26px; border-radius: 50%; background: var(--secondary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.82rem; flex-shrink: 0; }
+  .drop-slot .zone { flex: 1; min-height: 34px; border: 2px dashed var(--border); border-radius: 6px; display: flex; align-items: center; padding: 0 0.6rem; font-size: 0.82rem; color: var(--muted); cursor: pointer; }
+  .drop-slot .zone.filled { border-style: solid; border-color: var(--primary); color: var(--text); background: #EAF6F5; }
+
+  .checklist-item { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.5rem 0; }
+  .checklist-item .box { width: 20px; height: 20px; border: 2px solid var(--secondary); border-radius: 5px; flex-shrink: 0; margin-top: 0.1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; cursor: pointer; }
+  .checklist-item.checked .box { background: var(--secondary); }
+  .checklist-item select { margin-left: auto; padding: 0.3rem; border-radius: 6px; border: 1px solid var(--border); }
+
+  textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; font-size: 0.9rem; font-family: inherit; resize: vertical; }
+  .scenario-box { background: #FFF9E8; border-left: 4px solid var(--orange); border-radius: 8px; padding: 1rem; font-size: 0.92rem; margin-bottom: 1.2rem; }
+  #scenarioModel { display: none; background: #EAFAF3; border: 1px solid var(--secondary); border-radius: 10px; padding: 1rem; margin-top: 1rem; font-size: 0.85rem; }
+  #scenarioModel.show { display: block; }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+
+  footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: 0.82rem; }
+
+  .name-bar { background: white; border-bottom: 1px solid var(--border); padding: 0.8rem 1.5rem; display: flex; gap: 0.6rem; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .name-bar label { font-size: 0.85rem; font-weight: 700; color: var(--muted); }
+  .name-bar input { padding: 0.5rem 0.7rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; min-width: 240px; font-family: inherit; }
+  .report-item { padding: 0.55rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+  .report-correct { color: #0E6B4F; font-weight: 700; }
+  .report-wrong { color: #C0392B; font-weight: 700; }
+  #reportContent h3 { color: var(--primary); font-size: 1rem; margin-top: 1.3rem; margin-bottom: 0.4rem; }
+  #reportContent { margin-top: 1rem; }
+  .print-btn { background: var(--dark); }
+  @media print {
+    nav.tabs, .name-bar, footer, .progress-bar, .btn-row { display: none !important; }
+    .task { display: none !important; }
+    .task#reportTask { display: block !important; }
+    body { background: white; }
+    main { max-width: 100%; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">A3-MASHG'ULOT · AMALIY SAYT</div>
+  <h1>Dasturiy ta'minot va operatsion tizimlar</h1>
+  <p>Barcha 5 topshiriqni shu sahifada bajaring — javoblaringizni kiriting va darhol tekshiring.</p>
+</header>
+
+<div class="name-bar">
+  <label for="studentName">F.I.Sh.:</label>
+  <input type="text" id="studentName" placeholder="Ismingizni shu yerga kiriting">
+  <span style="font-size:0.8rem; color:var(--muted);">Ishni tugatgach, oxirgi "📊 Hisobot" bo'limiga o'ting.</span>
+</div>
+
+
+<nav class="tabs" id="tabs">
+  <button class="active" data-tab="t1">1. Dasturlarni tasniflash</button>
+  <button data-tab="t2">2. OT turlari</button>
+  <button data-tab="t3">3. Windows tarixi</button>
+  <button data-tab="t4">4. Xavfsizlik</button>
+  <button data-tab="t5">5. OT tanlash</button>
+  <button data-tab="reportTask">📊 Hisobot</button>
+</nav>
+
+<main>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:20%;"></div></div>
+
+  <div class="task active" id="t1">
+    <h2>1-topshiriq. Real dasturlarni tasniflash</h2>
+    <div class="meta">Individual · taxminan 15 daqiqa</div>
+    <div class="instructions">Har bir dastur uchun tegishli turini tanlang.</div>
+    <div id="progList"></div>
+    <div class="btn-row">
+      <button class="primary" id="checkProg">Tekshirish</button>
+      <span id="progScore" style="font-weight:700; color:var(--primary);"></span>
+    </div>
+  </div>
+
+  <div class="task" id="t2">
+    <h2>2-topshiriq. Operatsion tizim turlarini aniqlash</h2>
+    <div class="meta">Juftlikda · taxminan 15 daqiqa</div>
+    <div class="instructions">Har bir qo'llanilish holati uchun mos OT turini tanlang.</div>
+    <div id="osList"></div>
+    <div class="btn-row">
+      <button class="primary" id="checkOs">Tekshirish</button>
+      <span id="osScore" style="font-weight:700; color:var(--primary);"></span>
+    </div>
+  </div>
+
+  <div class="task" id="t3">
+    <h2>3-topshiriq. Windows tarixiy taraqqiyotini tartiblash</h2>
+    <div class="meta">Guruhda · taxminan 15 daqiqa</div>
+    <div class="instructions">Avval yuqoridagi to'plamdan bitta versiyani bosing (tanlab oling), so'ngra tegishli tartib joyini bosib joylashtiring. Xronologik tartibda (eskisidan yangisiga) joylashtiring.</div>
+    <div class="drag-pool" id="dragPool"></div>
+    <div class="drop-slots" id="dropSlots"></div>
+    <div class="btn-row">
+      <button class="primary" id="checkOrder">Tekshirish</button>
+      <span id="orderScore" style="font-weight:700; color:var(--primary);"></span>
+    </div>
+  </div>
+
+  <div class="task" id="t4">
+    <h2>4-topshiriq. Windows xavfsizlik imkoniyatlarini o'rganish</h2>
+    <div class="meta">Individual · taxminan 25 daqiqa</div>
+    <div class="instructions">O'z kompyuteringizda tekshirib, har bir imkoniyat holatini belgilang va vazifasini tanlang.</div>
+    <div id="secList"></div>
+  </div>
+
+  <div class="task" id="t5">
+    <h2>5-topshiriq. Amaliy vaziyat: operatsion tizim tanlash</h2>
+    <div class="meta">Guruhda · taxminan 15 daqiqa</div>
+    <div class="scenario-box">Kichik shifoxonada 5 ta kompyuterni bitta markazlashtirilgan tizimga ulash, umumiy printer va fayllarga ulashgan holda kirish imkonini yaratish kerak.</div>
+    <div class="instructions">Qaysi turdagi operatsion tizim (va nima uchun aynan shu) tanlanishi kerakligini yozing.</div>
+    <textarea id="scenarioAnswer" rows="5" placeholder="Bizning tanlovimiz: ..."></textarea>
+    <div class="btn-row">
+      <button class="primary" id="showScenarioModel">Namunaviy javobni ko'rish</button>
+    </div>
+    <div id="scenarioModel">
+      <strong>Namunaviy javob yo'nalishi:</strong> Bunday vazifa uchun <strong>Tarmoq operatsion tizimi</strong> (masalan, Windows Server yoki Linux Server) mos keladi, chunki u bir nechta kompyuterni markazlashtirilgan tarzda boshqarish, umumiy resurslarga (printer, fayllar) nazorat ostida kirish huquqini berish va foydalanuvchilarni boshqarish imkonini beradi.
+    </div>
+  </div>
+
+
+  <div class="task" id="reportTask">
+    <h2>Yakuniy hisobot</h2>
+    <div class="meta">Barcha javoblaringizni shu yerda ko'rib chiqing va ustozingizga topshiring.</div>
+    <div class="instructions">Avval ismingizni yuqoriga kiriting, so'ng "Hisobotni tayyorlash" tugmasini bosing. Keyin "Chop etish / PDF saqlash" orqali natijani saqlab, ustozingizga yuboring.</div>
+    <div class="btn-row">
+      <button class="primary" id="genReportBtn">Hisobotni tayyorlash</button>
+      <button class="primary print-btn" id="printReportBtn">🖨️ Chop etish / PDF saqlash</button>
+    </div>
+    <div id="reportContent"></div>
+  </div>
+
+</main>
+
+<footer>A3-mashg'ulot amaliy sayti · Tibbiyotda axborot texnologiyalari · Barcha ishlar brauzeringizda amalga oshiriladi</footer>
+
+<script>
+const tabs = document.querySelectorAll("nav.tabs button");
+const tasks = document.querySelectorAll(".task");
+const progressFill = document.getElementById("progressFill");
+tabs.forEach((btn, idx) => {
+  btn.addEventListener("click", () => {
+    tabs.forEach(b => b.classList.remove("active"));
+    tasks.forEach(t => t.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+    progressFill.style.width = ((idx + 1) / tabs.length * 100) + "%";
+  });
+});
+
+const progs = [
+  { text: "Microsoft Windows 11", answer: "Tizim dasturiy ta'minoti" },
+  { text: "Microsoft Word", answer: "Amaliy dasturiy ta'minot" },
+  { text: "Google Chrome brauzeri", answer: "Amaliy dasturiy ta'minot" },
+  { text: "PyCharm (dasturlash muhiti)", answer: "Instrumental dasturiy ta'minot" },
+  { text: "Kaspersky antivirus", answer: "Tizim dasturiy ta'minoti" },
+  { text: "Adobe Photoshop", answer: "Amaliy dasturiy ta'minot" },
+  { text: "Windows printer drayveri", answer: "Tizim dasturiy ta'minoti" },
+];
+const progOptions = ["Tizim dasturiy ta'minoti", "Amaliy dasturiy ta'minot", "Instrumental dasturiy ta'minot"];
+const progList = document.getElementById("progList");
+progs.forEach(p => {
+  const div = document.createElement("div");
+  div.className = "item-row";
+  div.innerHTML = `<div class="spec">${p.text}</div><select>${["— tanlang —", ...progOptions].map(o => `<option>${o}</option>`).join("")}</select><div class="fb"></div>`;
+  div.dataset.answer = p.answer;
+  progList.appendChild(div);
+});
+document.getElementById("checkProg").addEventListener("click", () => {
+  let correct = 0;
+  document.querySelectorAll("#progList .item-row").forEach(div => {
+    const val = div.querySelector("select").value;
+    const ok = val === div.dataset.answer;
+    if (ok) correct++;
+    div.classList.add("checked");
+    const fb = div.querySelector(".fb");
+    fb.style.color = ok ? "#0E6B4F" : "#C0392B";
+    fb.textContent = ok ? "✓ To'g'ri!" : `✗ To'g'ri javob: ${div.dataset.answer}`;
+  });
+  document.getElementById("progScore").textContent = `${correct} / ${progs.length} to'g'ri`;
+});
+
+const osCases = [
+  { text: "Shifoxonada bir nechta shifokor bir vaqtda serverga ulanib ma'lumot bilan ishlaydi", answer: "Ko'p foydalanuvchili OT" },
+  { text: "Yurak monitorlash apparatida signalni millisekundlarda qayta ishlash", answer: "Real vaqt OT (RTOS)" },
+  { text: "Bemorning shaxsiy smartfonidagi sog'liq nazorati ilovasi", answer: "Mobil OT" },
+  { text: "Shifoxona bosh serveri tarmoq resurslarini boshqaradi", answer: "Tarmoq OT" },
+  { text: "1990-yillarda bitta shaxsiy kompyuterda ishlagan eski tizim", answer: "Bir foydalanuvchili OT" },
+];
+const osOptions = ["Bir foydalanuvchili OT", "Ko'p foydalanuvchili OT", "Real vaqt OT (RTOS)", "Tarmoq OT", "Mobil OT", "Taqsimlangan OT"];
+const osList = document.getElementById("osList");
+osCases.forEach(c => {
+  const div = document.createElement("div");
+  div.className = "item-row";
+  div.innerHTML = `<div class="spec">${c.text}</div><select>${["— tanlang —", ...osOptions].map(o => `<option>${o}</option>`).join("")}</select><div class="fb"></div>`;
+  div.dataset.answer = c.answer;
+  osList.appendChild(div);
+});
+document.getElementById("checkOs").addEventListener("click", () => {
+  let correct = 0;
+  document.querySelectorAll("#osList .item-row").forEach(div => {
+    const val = div.querySelector("select").value;
+    const ok = val === div.dataset.answer;
+    if (ok) correct++;
+    div.classList.add("checked");
+    const fb = div.querySelector(".fb");
+    fb.style.color = ok ? "#0E6B4F" : "#C0392B";
+    fb.textContent = ok ? "✓ To'g'ri!" : `✗ To'g'ri javob: ${div.dataset.answer}`;
+  });
+  document.getElementById("osScore").textContent = `${correct} / ${osCases.length} to'g'ri`;
+});
+
+const versions = ["Windows 1.0 (1985)", "Windows 95 (1995)", "Windows XP (2001)", "Windows 7 (2009)", "Windows 10 (2015)", "Windows 11 (2021)"];
+const correctOrder = [...versions];
+let shuffled = [...versions].sort(() => Math.random() - 0.5);
+let selectedChip = null;
+const slots = new Array(versions.length).fill(null);
+
+const dragPool = document.getElementById("dragPool");
+const dropSlots = document.getElementById("dropSlots");
+
+function renderPool() {
+  dragPool.innerHTML = "";
+  shuffled.forEach(v => {
+    if (slots.includes(v)) return;
+    const chip = document.createElement("div");
+    chip.className = "drag-chip";
+    chip.textContent = v;
+    if (v === selectedChip) chip.style.outline = "3px solid #F39C12";
+    chip.addEventListener("click", () => {
+      selectedChip = v;
+      renderPool();
+    });
+    dragPool.appendChild(chip);
+  });
+}
+
+function renderSlots() {
+  dropSlots.innerHTML = "";
+  slots.forEach((val, i) => {
+    const row = document.createElement("div");
+    row.className = "drop-slot";
+    row.innerHTML = `<div class="rank-num">${i + 1}</div><div class="zone ${val ? "filled" : ""}">${val || "Bosing (avval yuqoridan tanlang)"}</div>`;
+    row.querySelector(".zone").addEventListener("click", () => {
+      if (val) {
+        slots[i] = null;
+      } else if (selectedChip) {
+        slots[i] = selectedChip;
+        selectedChip = null;
+      }
+      renderPool();
+      renderSlots();
+    });
+    dropSlots.appendChild(row);
+  });
+}
+renderPool();
+renderSlots();
+
+document.getElementById("checkOrder").addEventListener("click", () => {
+  let correct = 0;
+  slots.forEach((v, i) => { if (v === correctOrder[i]) correct++; });
+  document.getElementById("orderScore").textContent = `${correct} / ${versions.length} to'g'ri joyda`;
+});
+
+const secItems = [
+  { name: "Windows Defender", purpose: ["Zararli dasturlardan himoya", "Disk shifrlash", "Virtual mashina yaratish"] },
+  { name: "BitLocker", purpose: ["Disk ma'lumotlarini shifrlash", "Antivirus tekshiruvi", "Tarmoq monitoring"] },
+  { name: "Fayl tizimi (NTFS)", purpose: ["Fayllarni tartibli saqlash va ruxsatlarni boshqarish", "Reklama bloklash", "Batareya tejash"] },
+];
+const secList = document.getElementById("secList");
+secItems.forEach(item => {
+  const div = document.createElement("div");
+  div.className = "checklist-item";
+  const shuffledP = [...item.purpose].sort(() => Math.random() - 0.5);
+  div.innerHTML = `
+    <div class="box"></div>
+    <span>${item.name} — tekshirdim</span>
+    <select>${["Vazifasini tanlang", ...shuffledP].map(o => `<option>${o}</option>`).join("")}</select>
+  `;
+  div.querySelector(".box").addEventListener("click", () => {
+    div.classList.toggle("checked");
+    div.querySelector(".box").textContent = div.classList.contains("checked") ? "✓" : "";
+  });
+  secList.appendChild(div);
+});
+
+document.getElementById("showScenarioModel").addEventListener("click", () => {
+  document.getElementById("scenarioModel").classList.add("show");
+});
+
+document.getElementById("genReportBtn").addEventListener("click", generateFinalReport);
+document.getElementById("printReportBtn").addEventListener("click", () => { generateFinalReport(); window.print(); });
+
+function generateFinalReport() {
+  const name = (document.getElementById("studentName").value || "").trim() || "______________________";
+  const dateStr = new Date().toLocaleDateString("uz-UZ");
+  let html = "";
+  html += '<div class="report-item"><strong>F.I.Sh.:</strong> ' + name + "</div>";
+  html += '<div class="report-item"><strong>Sana:</strong> ' + dateStr + "</div>";
+  html += "<div class='report-item'><strong>Mashg'ulot:</strong> " + document.title + "</div>";
+
+  // 1) Score summaries (any element whose id contains "Score")
+  const scoreEls = Array.from(document.querySelectorAll('[id*="Score"]'));
+  if (scoreEls.length) {
+    html += "<h3>Ballar xulosasi</h3>";
+    scoreEls.forEach(el => {
+      if (el.textContent.trim()) html += '<div class="report-item">' + el.textContent.trim() + "</div>";
+    });
+  }
+
+  // 2a) Multi-choice button tasks (.choice-row, e.g. Ha/Qisman/Yo'q style)
+  const choiceRows = document.querySelectorAll(".choice-row");
+  if (choiceRows.length) {
+    html += "<h3>Baholash topshirig'i</h3>";
+    choiceRows.forEach((row, idx) => {
+      const selectedBtn = row.querySelector("button.selected");
+      const container = row.closest("[class]");
+      const labelEl = container ? container.querySelector(".name, .spec, strong") : null;
+      const label = labelEl ? labelEl.textContent.trim() : ("Bemor/holat " + (idx + 1));
+      html += '<div class="report-item">' + label + ": <strong>" + (selectedBtn ? selectedBtn.textContent.trim() : "(tanlanmagan)") + "</strong></div>";
+    });
+  }
+
+  // 2) Dropdown-based tasks (.item-row)
+  const rows = document.querySelectorAll(".item-row");
+  if (rows.length) {
+    html += "<h3>Tanlov topshiriqlari</h3>";
+    rows.forEach(div => {
+      const specEl = div.querySelector(".spec");
+      const spec = specEl ? specEl.textContent : "";
+      const sel = div.querySelector("select");
+      const chosen = sel ? sel.value : "";
+      const answer = div.dataset.answer || "";
+      const isPlaceholder = chosen === "" || chosen.indexOf("tanlang") !== -1;
+      const ok = chosen === answer;
+      const cls = isPlaceholder ? "" : (ok ? "report-correct" : "report-wrong");
+      html += '<div class="report-item">' + spec.trim() + "<br>Javob: <span class='" + cls + "'>" +
+        (isPlaceholder ? "(tanlanmagan)" : chosen) + "</span>" +
+        (!ok && !isPlaceholder ? " — to'g'ri javob: " + answer : "") + "</div>";
+    });
+  }
+
+  // 3) Email/fishing-card style tasks (.email-card)
+  const emailCards = document.querySelectorAll(".email-card");
+  if (emailCards.length) {
+    html += "<h3>Tahlil topshirig'i</h3>";
+    emailCards.forEach(div => {
+      const contentEl = div.querySelector(".content");
+      const content = contentEl ? contentEl.textContent : "";
+      const chosen = div.dataset.selected || "";
+      const answer = div.dataset.answer || "";
+      const ok = chosen === answer && chosen !== "";
+      const cls = chosen === "" ? "" : (ok ? "report-correct" : "report-wrong");
+      html += '<div class="report-item">' + content.trim() + "<br>Javob: <span class='" + cls + "'>" +
+        (chosen || "(tanlanmagan)") + "</span></div>";
+    });
+  }
+
+  // 4) Drag/order-arrangement tasks (any element with class "zone")
+  const orderSlots = document.querySelectorAll(".zone");
+  if (orderSlots.length) {
+    html += "<h3>Tartiblash topshirig'i (yakuniy joylashuv)</h3><ol>";
+    orderSlots.forEach(zone => {
+      html += "<li>" + zone.textContent.trim() + "</li>";
+    });
+    html += "</ol>";
+  }
+
+  // 5) Password-strength rows (.pw-row)
+  const pwRows = document.querySelectorAll(".pw-row");
+  if (pwRows.length) {
+    html += "<h3>Parol yaratish mashqi</h3>";
+    pwRows.forEach(div => {
+      const weakEl = div.querySelector(".weak");
+      const weak = weakEl ? weakEl.textContent : "";
+      const inputEl = div.querySelector("input");
+      const val = inputEl ? inputEl.value : "";
+      const strengthEl = div.querySelector(".pw-strength");
+      const strength = strengthEl ? strengthEl.textContent : "";
+      html += '<div class="report-item">' + weak.trim() + " → <strong>" + (val || "(kiritilmagan)") + "</strong> (" + strength.trim() + ")</div>";
+    });
+  }
+
+  // 6) Mini error-finding table cells (table.xato-table inputs)
+  const xatoInputs = document.querySelectorAll("table.xato-table input[type='text']");
+  if (xatoInputs.length) {
+    html += "<h3>Xato jadvali</h3>";
+    let rowBuf = [];
+    xatoInputs.forEach((inp) => {
+      rowBuf.push(inp.value.trim());
+      if (rowBuf.length === 2) {
+        if (rowBuf[0] || rowBuf[1]) {
+          html += '<div class="report-item">Xato: ' + (rowBuf[0] || "—") + " | Tuzatish: " + (rowBuf[1] || "—") + "</div>";
+        }
+        rowBuf = [];
+      }
+    });
+  }
+
+  // 7) Fallback: any remaining <select> elements not already covered above (older-format tasks)
+  const coveredSelects = new Set();
+  document.querySelectorAll(".item-row select").forEach(s => coveredSelects.add(s));
+  const otherSelects = Array.from(document.querySelectorAll("select")).filter(s => !coveredSelects.has(s));
+  if (otherSelects.length) {
+    html += "<h3>Boshqa tanlov javoblari</h3>";
+    otherSelects.forEach((sel, idx) => {
+      const row = sel.closest("tr") || sel.closest("[class]") || sel.parentElement;
+      let label = "";
+      if (row) {
+        const firstCell = row.querySelector("td, .spec, span, div");
+        label = firstCell ? firstCell.textContent.trim().slice(0, 60) : "";
+      }
+      const val = sel.value && sel.value !== "" ? sel.value : "(tanlanmagan)";
+      html += '<div class="report-item">' + (label ? label + " — " : ("Tanlov " + (idx + 1) + ": ")) + "<strong>" + val + "</strong></div>";
+    });
+  }
+
+  // 8) All remaining free-text textarea / standalone text inputs
+  const freeInputs = document.querySelectorAll("textarea, input[type='text']");
+  let freeHtml = "";
+  freeInputs.forEach(el => {
+    if (el.id === "studentName") return;
+    if (el.closest(".item-row") || el.closest(".pw-row") || el.closest("table.xato-table")) return;
+    let label = el.id;
+    const prev = el.previousElementSibling;
+    if (prev && prev.classList && prev.classList.contains("field-label")) {
+      label = prev.textContent.trim();
+    } else if (el.placeholder) {
+      label = el.placeholder.split("\n")[0];
+    }
+    if (el.value.trim()) {
+      freeHtml += '<div class="report-item"><strong>' + label + ":</strong><br>" + el.value.trim().replace(/\n/g, "<br>") + "</div>";
+    }
+  });
+  if (freeHtml) html += "<h3>Yozma javoblar</h3>" + freeHtml;
+
+  document.getElementById("reportContent").innerHTML = html;
+}
+
+</script>
+
+</body>
+</html>
